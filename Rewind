@@ -1,0 +1,79 @@
+local player = game.Players.LocalPlayer
+local userInputService = game:GetService("UserInputService")
+
+local rewindEnabled = false
+local lastRewindTime = 0
+
+local function rewindFrames()
+    if not rewindEnabled then
+        return
+    end
+
+    local currentTime = tick()
+    if currentTime - lastRewindTime < 0.1 then
+        rewindEnabled = false
+        print("Rewind disabled")
+        return
+    end
+
+-- Define variables
+local player = game.Players.LocalPlayer
+local startPosition = player.Character.HumanoidRootPart.Position
+local rewindTime = 5
+local replaying = false
+local replayFrames = {}
+
+-- Function to record frames
+local function RecordFrames()
+    local framesToRecord = rewindTime / 5  -- Adjust based on your wait time
+    replayFrames = {}
+
+    for i = 1, framesToRecord do
+        table.insert(replayFrames, player.Character.HumanoidRootPart.CFrame)
+        wait(0.03)
+    end
+end
+
+-- Function to replay frames
+local function ReplayFrames()
+    if replaying then
+        return
+    end
+    
+    replaying = true
+    
+    for _, frame in ipairs(replayFrames) do
+        player.Character.HumanoidRootPart.CFrame = frame
+        wait(0.03)
+    end
+    
+    replaying = false
+end
+
+-- Bind functions to X button press
+local userInputService = game:GetService("UserInputService")
+local rewindButton = Enum.KeyCode.X
+
+local function onKeyPress(input, gameProcessedEvent)
+    if input.KeyCode == rewindButton and not gameProcessedEvent then
+        if not replaying then
+            RecordFrames()
+            ReplayFrames()
+        end
+    end
+end
+
+userInputService.InputBegan:Connect(onKeyPress)    -- Insert your rewind logic here
+
+    lastRewindTime = currentTime
+end
+
+local function onKeyPress(input)
+    if input.KeyCode == Enum.KeyCode.X then
+        rewindEnabled = not rewindEnabled
+        print("Rewind " .. (rewindEnabled and "enabled" or "disabled"))
+    end
+end
+
+userInputService.InputBegan:Connect(onKeyPress)
+userInputService.InputChanged:Connect(rewindFrames)
